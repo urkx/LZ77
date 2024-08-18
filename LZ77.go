@@ -4,9 +4,9 @@ import (
 	"slices"
 )
 
-func searchLongestMatch(data string, searchBuffer string, sp int, lp int, wp int) MatchResult{
-	matchList := []Packet{}
-	var actualMatch *Packet = nil
+func searchLongestMatch(data string, searchBuffer string, sp int, lp int, wp int) matchResult{
+	matchList := []packet{}
+	var actualMatch *packet = nil
 	m := ""
 	matching := false
 	x := sp
@@ -14,7 +14,7 @@ func searchLongestMatch(data string, searchBuffer string, sp int, lp int, wp int
 		if searchBuffer[x] == data[lp] {
 			m = m + string(searchBuffer[x])
 			if actualMatch == nil {
-				actualMatch = &Packet{distance: wp - x, length: len(m), char: ""}
+				actualMatch = &packet{distance: wp - x, length: len(m), char: ""}
 			} else {
 				actualMatch.length = len(m)
 			}
@@ -36,10 +36,10 @@ func searchLongestMatch(data string, searchBuffer string, sp int, lp int, wp int
 			x += 1
 		}
 	}
-	return MatchResult{matchList: matchList, actualMatch: actualMatch}
+	return matchResult{matchList: matchList, actualMatch: actualMatch}
 }
 
-func orderMatchList(x Packet, y Packet) int {
+func orderMatchList(x packet, y packet) int {
 	if x.length > y.length { 
 		return 1 
 	} else if x.length < y.length { 
@@ -47,8 +47,8 @@ func orderMatchList(x Packet, y Packet) int {
 	} else { return 0 }
 }
 
-func Compress(data string, winSize int) []Packet {
-	output := []Packet{}
+func Compress(data string, winSize int) []Result {
+	buffer_output := []packet{}
 
 	wp := 0
 	
@@ -60,35 +60,42 @@ func Compress(data string, winSize int) []Packet {
 		matchResult := searchLongestMatch(data, search_buffer, sp, lp, wp)
 		dwp := 1
 		if matchResult.actualMatch == nil && len(matchResult.matchList) == 0 {
-			matchResult.matchList = append(matchResult.matchList, Packet{distance: 0, length: 0, char: string(data[wp])})
+			matchResult.matchList = append(matchResult.matchList, packet{distance: 0, length: 0, char: string(data[wp])})
 		} else if matchResult.actualMatch != nil {
 			matchResult.matchList = append(matchResult.matchList, *matchResult.actualMatch)
 			dwp = matchResult.actualMatch.length
 		}
 		slices.SortFunc(matchResult.matchList, orderMatchList)
 		newPacket := matchResult.matchList[len(matchResult.matchList)-1]
-		output = append(output, newPacket)
+		buffer_output = append(buffer_output, newPacket)
 		if newPacket.length > 0 {
 			dwp = newPacket.length
 		}
 		wp += dwp
 	}
+	output := []Result{}
+	i := 0
+	for i < len(buffer_output) {
+		output = append(output, buffer_output[i].ToRes())
+		i += 1
+	}
 	return output
 }
 
-func Decompress(input []Packet) string {
+func Decompress(input []Result) string {
 	output := ""
 	x := 0
 	for x < len(input) {
 		packet := input[x]
-		if packet.char != ""{
-			output += packet.char
-		} else {
-			d := packet.distance
-			l := packet.length
-			actualPointer := len(output)
-			newData := output[actualPointer - d : (actualPointer - d) + l]
-			output += newData
+		switch t := packet.(type) {
+			case Pair:
+				d := t.distance
+				l := t.length
+				actualPointer := len(output)
+				newData := output[actualPointer - d : (actualPointer - d) + l]
+				output += newData
+			default:
+				output += packet.res()
 		}
 		x += 1
 	}
