@@ -23,3 +23,11 @@ func (p Pair) Byte() []byte {
 func (p Pair) toString() string {
 	return fmt.Sprintf("[ distance=%d, length=%d ]", p.distance, p.length)
 }
+
+func PairFromBytes(b []byte) Pair {
+	if len(b) != 4 || (b[0] != byte('[') && b[3] != byte(']')) {
+		panic("Not a pair")
+	}
+
+	return Pair{int(b[1]), int(b[2])}
+}

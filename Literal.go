@@ -9,3 +9,7 @@ func (l Literal) res() string {
 func (l Literal) Byte() []byte {
 	return []byte(l.res())
 }
+
+func LiteralFromByte(b byte) Literal {
+	return Literal(string(b))
+}

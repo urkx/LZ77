@@ -31,6 +31,7 @@ func TestWriteFile(t *testing.T) {
 		t.Fatal("WriteFile failed")
 	}
 	fmt.Print(lgo.Info("File created successfully"))
+	os.Remove("test.lz77")
 }
 
 func TestReadFile(t *testing.T) {
@@ -44,4 +45,30 @@ func TestReadFile(t *testing.T) {
 	if error != nil || string(read) != test_content {
 		t.Fatal("Readed content is not equal to test content")
 	}
+	fmt.Print(lgo.Info("File readed successfully"))
+	os.Remove("test.input")
+}
+
+func TestResultFromBytes(t *testing.T) {
+	test := "tres tristes tigres tragaban trigo en un trigal"
+	c := Compress(test, 32000)
+	
+	err := WriteResultFile("test.lz77", c)
+	if err != nil {
+		t.Fatal("ResultFromBytes WriteFile failed")
+	}
+
+	read, err := ReadFile("test.lz77")
+	if err != nil {
+		t.Fatal("ResultFromBytes ReadFile error")
+	}
+
+	parsed := ParseBytes(read)
+	fmt.Print(lgo.Debug(c))
+	fmt.Print(lgo.Debug(parsed))
+	if len(parsed) != len(c) {
+		t.Fatal("Parsed not equal than compressed")
+	}
+	fmt.Print(lgo.Info("File parsed successfully"))
+	os.Remove("test.lz77")
 }

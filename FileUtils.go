@@ -43,3 +43,23 @@ func ReadFile(name string) ([]byte, error) {
 	}
 	return res.Bytes(), nil
 }
+
+func ParseBytes(b []byte) []Result {
+	i := 0
+	var res []Result
+	for i < len(b) {
+		if b[i] == byte('[') && b[i + 3] == byte(']') {
+			bytes := make([]byte, 4)
+			bytes[0] = b[i]
+			bytes[1] = b[i + 1]
+			bytes[2] = b[i + 2]
+			bytes[3] = b[i + 3]
+			res = append(res, PairFromBytes(bytes))
+			i += 4
+		} else {
+			res = append(res, LiteralFromByte(b[i]))
+			i++
+		}
+	}
+	return res
+}
